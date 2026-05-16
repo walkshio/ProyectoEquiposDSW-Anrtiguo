@@ -1,0 +1,214 @@
+body {
+    background-color: #f0f2f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-page {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.card-login {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.btn-login {
+    background: #212529;
+    color: white;
+    border-radius: 10px;
+    padding: 12px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-login:hover {
+    background: #444;
+    color: white;
+}
+
+.login-icon {
+    font-size: 3rem;
+    color: #ffc107;
+}
+
+.main-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    padding: 40px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+.filter-section,
+.info-section {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.table img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    border-radius: 5px;
+}
+
+.badge-disponible {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-prestado {
+    background-color: #dc3545;
+    color: white;
+}
+
+.form-card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.create-card-header {
+    border-radius: 15px 15px 0 0 !important;
+    padding: 20px;
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+.edit-card-header {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: #212529;
+    font-weight: bold;
+    padding: 20px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.form-control,
+.form-select {
+    border-radius: 8px;
+    padding: 10px 15px;
+    border: 1px solid #dee2e6;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+}
+
+.btn-update {
+    background-color: #ffc107;
+    border: none;
+    color: #212529;
+    font-weight: bold;
+    padding: 12px;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.btn-update:hover {
+    background-color: #e0a800;
+    transform: translateY(-2px);
+}
+
+.btn-back {
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.preview-img {
+    width: 100%;
+    height: 180px;
+    object-fit: contain;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.info-box {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+.equipo-card {
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 300px;
+    height: 100%;
+}
+
+.equipo-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    border-color: #0d6efd;
+}
+
+.equipo-card.selected {
+    border-color: #0d6efd;
+    background-color: #e7f3ff;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+}
+
+.equipo-card .text-center {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.equipo-placeholder {
+    width: 100%;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.placeholder-icon {
+    font-size: 4rem;
+}
+
+.equipo-card img.img-fluid {
+    width: 100%;
+    height: 180px !important;
+    max-height: none;
+    object-fit: cover;
+    object-position: center;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 0;
+    margin-bottom: 16px !important;
+    display: block;
+}
+
+.equipo-card h6 {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.equipo-radio {
+    display: none;
+}

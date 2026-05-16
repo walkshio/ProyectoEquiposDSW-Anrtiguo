@@ -1,0 +1,57 @@
+﻿@using Microsoft.AspNetCore.Http
+@model IEnumerable<Capa.Entidades.Prestamo>
+
+@{
+    ViewData["Title"] = "Equipos en Uso";
+    string rol = Context.Session.GetString("UsuarioRol") ?? "";
+    string nombre = Context.Session.GetString("UsuarioNombre") ?? "";
+}
+
+<div class="container">
+    <div class="main-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 text-primary">Equipos en Uso</h1>
+            <a href="/Prestamo/Pendientes" class="btn btn-secondary">Volver</a>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-warning">
+                No hay equipos en uso.
+            </div>
+        }
+        else
+        {
+            <table class="table table-bordered text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Equipo</th>
+                        <th>Usuario</th>
+                        <th>Inicio</th>
+                        <th>Fin</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.PrestamoID</td>
+                            <td>@item.NombreEquipo</td>
+                            <td>@item.NombreUsuario</td>
+                            <td>@item.FechaInicio?.ToString("dd/MM/yyyy")</td>
+                            <td>@item.FechaFin.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <a href="/Prestamo/Devolver/@item.PrestamoID"
+                                   class="btn btn-primary btn-sm">
+                                    Devolver
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
