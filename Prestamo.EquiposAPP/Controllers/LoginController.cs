@@ -11,10 +11,12 @@ namespace Prestamo.EquiposAPP.Controllers
     public class LoginController : Controller
     {
         private readonly UsuarioNegocio _negocio;
+        private readonly IConfiguration _config;
 
         public LoginController(IConfiguration config)
         {
             _negocio = new UsuarioNegocio(config);
+            _config = config;
         }
 
         [HttpGet("api/auth/test-session")]
@@ -36,10 +38,11 @@ namespace Prestamo.EquiposAPP.Controllers
         [HttpGet("Login/CallbackExterno")]
         public async Task<IActionResult> CallbackExterno()
         {
+            var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:5174";
             var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             if (!result.Succeeded || result.Principal == null)
             {
-                return Redirect("http://localhost:5174/login?error=auth_failed");
+                return Redirect($"{frontendUrl}/login?error=auth_failed");
             }
 
             var email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
@@ -47,7 +50,7 @@ namespace Prestamo.EquiposAPP.Controllers
 
             if (string.IsNullOrEmpty(email))
             {
-                return Redirect("http://localhost:5174/login?error=no_email");
+                return Redirect($"{frontendUrl}/login?error=no_email");
             }
 
             var user = _negocio.ObtenerPorCorreo(email);
@@ -78,7 +81,7 @@ namespace Prestamo.EquiposAPP.Controllers
             var dataJson = System.Text.Json.JsonSerializer.Serialize(userData);
             var base64Data = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(dataJson));
 
-            return Redirect($"http://localhost:5174/login?auth=success&data={Uri.EscapeDataString(base64Data)}");
+            return Redirect($"{frontendUrl}/login?auth=success&data={Uri.EscapeDataString(base64Data)}");
         }
 
         [HttpGet("api/auth/session")]
