@@ -9,10 +9,14 @@ namespace Prestamo.EquiposAPP.Controllers
     public class PrestamoController : Controller
     {
         private readonly PrestamoNegocio _negocio;
+        private readonly CategoriaNegocio _catNegocio;
+        private readonly IConfiguration _config;
 
         public PrestamoController(IConfiguration config)
         {
             _negocio = new PrestamoNegocio(config);
+            _catNegocio = new CategoriaNegocio(config);
+            _config = config;
         }
 
         private bool UsuarioLogueado()
@@ -25,168 +29,209 @@ namespace Prestamo.EquiposAPP.Controllers
             return HttpContext.Session.GetString("UsuarioRol") == "Administrador";
         }
 
-        public IActionResult Solicitar(string tipoEquipo)
+
+
+        [HttpPost("api/prestamos/solicitar")]
+        public IActionResult ApiSolicitar([FromBody] SolicitarRequest request)
         {
-            if (!UsuarioLogueado())
-                return RedirectToAction("Index", "Login");
-
-            List<Equipo> lista;
-
-            if (!string.IsNullOrEmpty(tipoEquipo) && tipoEquipo != "Todos")
+            var usuarioIDObj = HttpContext.Session.GetInt32("UsuarioID");
+            if (usuarioIDObj == null)
             {
-                lista = _negocio.ObtenerEquiposPorTipo(tipoEquipo);
-            }
-            else
-            {
-                lista = _negocio.ObtenerEquiposDisponibles();
+                return Unauthorized(new { mensaje = "Sesión no iniciada" });
             }
 
-            ViewBag.TipoSeleccionado = tipoEquipo;
-            return View(lista);
+            if (request == null || request.EquipoID <= 0 || request.FechaFin <= DateTime.Today)
+            {
+                return BadRequest(new { mensaje = "Datos de solicitud inválidos. La fecha de devolución debe ser futura." });
+            }
+
+            try
+            {
+                int usuarioID = usuarioIDObj.Value;
+                string mensaje = _negocio.RegistrarSolicitud(request.EquipoID, usuarioID, request.FechaFin);
+                if (mensaje.Contains("exitosamente"))
+                {
+                    return Ok(new { mensaje = mensaje });
+                }
+                return BadRequest(new { mensaje = mensaje });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error interno: " + ex.Message });
+            }
         }
 
-        [HttpPost]
-        public IActionResult Solicitar(int equipoID, DateTime fechaFin)
+        [HttpGet("api/prestamos/usuario")]
+        public IActionResult ApiGetMisSolicitudes()
         {
-            if (!UsuarioLogueado())
-                return RedirectToAction("Index", "Login");
-
-            if (fechaFin <= DateTime.Today)
+            int? usuarioIDObj = HttpContext.Session.GetInt32("UsuarioID");
+            if (usuarioIDObj == null)
             {
-                TempData["mensaje"] = "La fecha de devolución debe ser posterior a hoy.";
-                TempData["tipo"] = "warning";
-                return RedirectToAction("Solicitar");
+                return Unauthorized(new { mensaje = "Sesión no iniciada" });
             }
-
-            int usuarioID = HttpContext.Session.GetInt32("UsuarioID") ?? 0;
-
-            if (usuarioID == 0)
-            {
-                TempData["mensaje"] = "Error: Usuario no identificado.";
-                TempData["tipo"] = "danger";
-                return RedirectToAction("Index", "Login");
-            }
-
-            string resultado = _negocio.RegistrarSolicitud(equipoID, usuarioID, fechaFin);
-
-            if (resultado.Contains("éxito"))
-            {
-                TempData["mensaje"] = resultado;
-                TempData["tipo"] = "success";
-            }
-            else
-            {
-                TempData["mensaje"] = resultado;
-                TempData["tipo"] = "danger";
-            }
-
-            return RedirectToAction("Solicitar");
+            var solicitudes = _negocio.ObtenerSolicitudesUsuario(usuarioIDObj.Value);
+            return Ok(solicitudes);
         }
 
-        public IActionResult Pendientes()
+        [HttpGet("api/prestamos/pendientes")]
+        public IActionResult ApiGetPendientes()
         {
-            if (!UsuarioLogueado())
-                return RedirectToAction("Index", "Login");
-
-            if (!EsAdministrador())
-                return RedirectToAction("Catalogo", "Equipo");
-
+            if (HttpContext.Session.GetString("UsuarioRol") != "Administrador")
+            {
+                return Forbid();
+            }
             var solicitudes = _negocio.ObtenerSolicitudesPendientes();
-            return View(solicitudes);
+            return Ok(solicitudes);
         }
 
-        public IActionResult MisSolicitudes()
+        [HttpGet("api/prestamos/todos")]
+        public IActionResult ApiGetTodos()
         {
-            if (!UsuarioLogueado())
-                return RedirectToAction("Index", "Login");
-
-            int usuarioID = HttpContext.Session.GetInt32("UsuarioID") ?? 0;
-
-            if (usuarioID == 0)
-                return RedirectToAction("Index", "Login");
-
-            var solicitudes = _negocio.ObtenerSolicitudesUsuario(usuarioID);
-            return View(solicitudes);
+            if (HttpContext.Session.GetString("UsuarioRol") != "Administrador")
+            {
+                return Forbid();
+            }
+            var solicitudes = _negocio.ObtenerTodos();
+            return Ok(solicitudes);
         }
 
-        public IActionResult Aprobar(int id)
+        [HttpGet("api/prestamos/en-uso")]
+        public IActionResult ApiGetEnUso()
         {
-            if (!UsuarioLogueado())
-                return RedirectToAction("Index", "Login");
-
-            if (!EsAdministrador())
-                return RedirectToAction("Catalogo", "Equipo");
-
-            string resultado = _negocio.AprobarSolicitud(id);
-            TempData["mensaje"] = resultado;
-            TempData["tipo"] = resultado.Contains("correctamente") ? "success" : "warning";
-            return RedirectToAction("Pendientes");
-        }
-
-        public IActionResult Rechazar(int id)
-        {
-            if (!UsuarioLogueado())
-                return RedirectToAction("Index", "Login");
-
-            if (!EsAdministrador())
-                return RedirectToAction("Catalogo", "Equipo");
-
-            string resultado = _negocio.RechazarSolicitud(id);
-            TempData["mensaje"] = resultado;
-            TempData["tipo"] = resultado.Contains("correctamente") ? "success" : "warning";
-            return RedirectToAction("Pendientes");
-        }
-        public IActionResult Entregar(int id)
-        {
-            if (!EsAdministrador())
-                return RedirectToAction("Catalogo", "Equipo");
-
-            string resultado = _negocio.EntregarEquipo(id);
-            TempData["mensaje"] = resultado;
-
-            return RedirectToAction("Pendientes");
-        }
-
-        public IActionResult Devolver(int id)
-        {
-            if (!EsAdministrador())
-                return RedirectToAction("Catalogo", "Equipo");
-
-            string resultado = _negocio.DevolverEquipo(id, DateTime.Now);
-            TempData["mensaje"] = resultado;
-
-            return RedirectToAction("Pendientes");
-        }
-        public IActionResult EnUso()
-        {
-            if (!UsuarioLogueado())
-                return RedirectToAction("Index", "Login");
-
-            if (!EsAdministrador())
-                return RedirectToAction("Catalogo", "Equipo");
-
+            if (HttpContext.Session.GetString("UsuarioRol") != "Administrador")
+            {
+                return Forbid();
+            }
             var lista = _negocio.ObtenerEnUso();
-            return View("PrestamosEnUso", lista);
+            return Ok(lista);
         }
-        public IActionResult ConfirmarEntrega(int id)
+
+        [HttpPost("api/prestamos/aprobar/{id}")]
+        public IActionResult ApiAprobar(int id)
         {
-            if (!UsuarioLogueado())
-                return RedirectToAction("Index", "Login");
+            if (HttpContext.Session.GetString("UsuarioRol") != "Administrador")
+            {
+                return Forbid();
+            }
+            var prestamo = _negocio.ObtenerPorId(id);
+            string resultado = _negocio.AprobarSolicitud(id);
+            if (resultado.Contains("correctamente"))
+            {
+                if (prestamo != null)
+                {
+                    try { EmailService.NotificarAprobacion(_config, prestamo); } catch {}
+                }
+                return Ok(new { mensaje = resultado });
+            }
+            return BadRequest(new { mensaje = resultado });
+        }
+
+        [HttpPost("api/prestamos/rechazar/{id}")]
+        public IActionResult ApiRechazar(int id, [FromBody] RejectRequest request)
+        {
+            if (HttpContext.Session.GetString("UsuarioRol") != "Administrador")
+            {
+                return Forbid();
+            }
+            if (string.IsNullOrWhiteSpace(request?.MotivoRechazo))
+            {
+                return BadRequest(new { mensaje = "El motivo de rechazo es obligatorio." });
+            }
+            var prestamo = _negocio.ObtenerPorId(id);
+            string resultado = _negocio.RechazarSolicitud(id, request.MotivoRechazo);
+            if (resultado.Contains("correctamente"))
+            {
+                if (prestamo != null)
+                {
+                    try { EmailService.NotificarRechazo(_config, prestamo, request.MotivoRechazo); } catch {}
+                }
+                return Ok(new { mensaje = resultado });
+            }
+            return BadRequest(new { mensaje = resultado });
+        }
+
+        [HttpPost("api/prestamos/entregar/{id}")]
+        public IActionResult ApiEntregar(int id)
+        {
+            if (HttpContext.Session.GetString("UsuarioRol") != "Administrador")
+            {
+                return Forbid();
+            }
+            string resultado = _negocio.EntregarEquipo(id);
+            if (resultado.Contains("exitosamente") || resultado.Contains("correctamente") || resultado.Contains("éxito"))
+            {
+                return Ok(new { mensaje = resultado });
+            }
+            return BadRequest(new { mensaje = resultado });
+        }
+
+        [HttpPost("api/prestamos/confirmar-entrega/{id}")]
+        public IActionResult ApiConfirmarEntrega(int id)
+        {
+            var usuarioIDObj = HttpContext.Session.GetInt32("UsuarioID");
+            if (usuarioIDObj == null)
+            {
+                return Unauthorized(new { mensaje = "Sesión no iniciada" });
+            }
 
             string resultado = _negocio.EntregarEquipo(id);
-
-            TempData["mensaje"] = resultado;
-            TempData["tipo"] = "success";
-
-            return RedirectToAction("MisSolicitudes");
+            if (resultado.Contains("exitosamente") || resultado.Contains("correctamente") || resultado.Contains("éxito"))
+            {
+                return Ok(new { mensaje = resultado });
+            }
+            return BadRequest(new { mensaje = resultado });
         }
 
-        public IActionResult NoEntregado()
+        [HttpPost("api/prestamos/devolver/{id}")]
+        public IActionResult ApiDevolver(int id, [FromBody] DevolverRequest request)
         {
-            TempData["mensaje"] = "Se ha informado del problema. La entrega se realizará pronto.";
-            TempData["tipo"] = "warning";
+            if (HttpContext.Session.GetString("UsuarioRol") != "Administrador")
+            {
+                return Forbid();
+            }
+            string resultado = _negocio.DevolverEquipo(id, DateTime.Now, request.Incidencia, request.MultaDanio);
+            if (resultado.Contains("exitosamente") || resultado.Contains("correctamente") || resultado.Contains("éxito") || resultado.Contains("devuelto"))
+            {
+                return Ok(new { mensaje = resultado });
+            }
+            return BadRequest(new { mensaje = resultado });
+        }
+        [HttpGet("api/prestamos/{id}")]
+        public IActionResult ApiGetPrestamo(int id)
+        {
+            var prestamo = _negocio.ObtenerPorId(id);
+            if (prestamo == null)
+            {
+                return NotFound(new { mensaje = "Préstamo no encontrado" });
+            }
 
-            return RedirectToAction("MisSolicitudes");
+            int sessionUsuarioID = HttpContext.Session.GetInt32("UsuarioID") ?? 0;
+            string sessionRol = HttpContext.Session.GetString("UsuarioRol") ?? "";
+
+            if (sessionRol != "Administrador" && prestamo.UsuarioID != sessionUsuarioID)
+            {
+                return Forbid();
+            }
+
+            return Ok(prestamo);
         }
     }
+
+    public class SolicitarRequest
+    {
+        public int EquipoID { get; set; }
+        public DateTime FechaFin { get; set; }
+    }
+
+    public class RejectRequest
+    {
+        public string MotivoRechazo { get; set; } = string.Empty;
+    }
+
+    public class DevolverRequest
+    {
+        public string? Incidencia { get; set; }
+        public decimal MultaDanio { get; set; }
+    }
 }
+

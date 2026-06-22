@@ -1,4 +1,4 @@
-﻿using Capa.Datos;
+using Capa.Datos;
 using Capa.Entidades;
 using Microsoft.Extensions.Configuration;
 
@@ -20,5 +20,7 @@ namespace Capa.Negocio
         public List<Equipo> ObtenerTodo() => _dao.ListarTodo();
         public List<Equipo> FiltrarEquipos(string tipo) => _dao.ListarPorTipo(tipo);
         public string EliminarEquipo(int id) => _dao.Eliminar(id);
+        public Dictionary<string, object> ObtenerKPIs() => _dao.ObtenerKPIs();
+        public List<Dictionary<string, object>> ObtenerActividadReciente() => _dao.ListarActividadReciente();
     }
 }

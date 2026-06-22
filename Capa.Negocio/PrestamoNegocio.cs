@@ -22,17 +22,20 @@ namespace Capa.Negocio
 
         public List<Prestamo> ObtenerSolicitudesPendientes() => _dao.ListarPendientes();
 
+        public List<Prestamo> ObtenerTodos() => _dao.ListarTodos();
+
         public List<Prestamo> ObtenerSolicitudesUsuario(int usuarioID) => _dao.ListarPorUsuario(usuarioID);
 
         public string AprobarSolicitud(int prestamoID) => _dao.AprobarSolicitud(prestamoID);
 
-        public string RechazarSolicitud(int prestamoID) => _dao.RechazarSolicitud(prestamoID);
+        public string RechazarSolicitud(int prestamoID, string motivoRechazo) => _dao.RechazarSolicitud(prestamoID, motivoRechazo);
 
         public string EntregarEquipo(int prestamoID)
             => _dao.EntregarEquipo(prestamoID);
 
-        public string DevolverEquipo(int prestamoID, DateTime fecha)
-            => _dao.DevolverEquipo(prestamoID, fecha);
+        public string DevolverEquipo(int prestamoID, DateTime fecha, string? incidencia, decimal multaDanio)
+            => _dao.DevolverEquipo(prestamoID, fecha, incidencia, multaDanio);
         public List<Prestamo> ObtenerEnUso() => _dao.ListarEnUso();
+        public Prestamo ObtenerPorId(int id) => _dao.BuscarPorId(id);
     }
 }

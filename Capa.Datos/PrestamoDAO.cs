@@ -30,7 +30,7 @@ namespace Capa.Datos
                         {
                             EquipoID = Convert.ToInt32(dr["EquipoID"]),
                             Nombre = dr["Nombre"]?.ToString() ?? "",
-                            Tipo = dr["Tipo"]?.ToString() ?? "",
+                            Tipo = dr["Categoria"]?.ToString() ?? "",
                             Estado = dr["Estado"]?.ToString() ?? "",
                             Imagen = dr["Imagen"]?.ToString()
                         });
@@ -45,8 +45,10 @@ namespace Capa.Datos
             var lista = new List<Equipo>();
             using (SqlConnection cn = new SqlConnection(_cadena))
             {
-                SqlCommand cmd = new SqlCommand("spListEquiposTipo", cn);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("spListarEquiposDispPorTipo", cn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
                 cmd.Parameters.AddWithValue("@Tipo", tipo);
                 cn.Open();
                 using (SqlDataReader dr = cmd.ExecuteReader())
@@ -57,7 +59,7 @@ namespace Capa.Datos
                         {
                             EquipoID = Convert.ToInt32(dr["EquipoID"]),
                             Nombre = dr["Nombre"]?.ToString() ?? "",
-                            Tipo = dr["Tipo"]?.ToString() ?? "",
+                            Tipo = dr["Categoria"]?.ToString() ?? "",
                             Estado = dr["Estado"]?.ToString() ?? "",
                             Imagen = dr["Imagen"]?.ToString()
                         });
@@ -106,16 +108,60 @@ namespace Capa.Datos
                         lista.Add(new Prestamo
                         {
                             PrestamoID = Convert.ToInt32(dr["PrestamoID"]),
+                            DetalleID = Convert.ToInt32(dr["DetalleID"]),
                             EquipoID = Convert.ToInt32(dr["EquipoID"]),
                             UsuarioID = Convert.ToInt32(dr["UsuarioID"]),
                             FechaSolicitud = Convert.ToDateTime(dr["FechaSolicitud"]),
                             FechaInicio = dr["FechaInicio"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaInicio"]),
                             FechaFin = Convert.ToDateTime(dr["FechaFin"]),
                             FechaDevolucion = dr["FechaDevolucion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaDevolucion"]),
-                            Estado = dr["Estado"]?.ToString() ?? "",
+                            Estado = dr["EstadoDetalle"]?.ToString() ?? "",
                             Multa = dr["Multa"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["Multa"]),
+                            MotivoRechazo = dr["MotivoRechazo"] == DBNull.Value ? null : dr["MotivoRechazo"].ToString(),
+                            Incidencia = dr["Incidencia"] == DBNull.Value ? null : dr["Incidencia"].ToString(),
+                            MultaDanio = dr["MultaDanio"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["MultaDanio"]),
                             NombreEquipo = dr["NombreEquipo"]?.ToString() ?? "",
-                            TipoEquipo = dr["TipoEquipo"]?.ToString() ?? "",
+                            TipoEquipo = dr["CategoriaEquipo"]?.ToString() ?? "",
+                            NombreUsuario = dr["NombreUsuario"]?.ToString() ?? "",
+                            CorreoUsuario = dr["CorreoUsuario"]?.ToString() ?? ""
+                        });
+                    }
+                }
+            }
+            return lista;
+        }
+
+        public List<Prestamo> ListarTodos()
+        {
+            var lista = new List<Prestamo>();
+            using (SqlConnection cn = new SqlConnection(_cadena))
+            {
+                SqlCommand cmd = new SqlCommand("spListarTodosPrestamos", cn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cn.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        lista.Add(new Prestamo
+                        {
+                            PrestamoID = Convert.ToInt32(dr["PrestamoID"]),
+                            DetalleID = Convert.ToInt32(dr["DetalleID"]),
+                            EquipoID = Convert.ToInt32(dr["EquipoID"]),
+                            UsuarioID = Convert.ToInt32(dr["UsuarioID"]),
+                            FechaSolicitud = Convert.ToDateTime(dr["FechaSolicitud"]),
+                            FechaInicio = dr["FechaInicio"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaInicio"]),
+                            FechaFin = Convert.ToDateTime(dr["FechaFin"]),
+                            FechaDevolucion = dr["FechaDevolucion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaDevolucion"]),
+                            Estado = dr["EstadoDetalle"]?.ToString() ?? "",
+                            Multa = dr["Multa"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["Multa"]),
+                            MotivoRechazo = dr["MotivoRechazo"] == DBNull.Value ? null : dr["MotivoRechazo"].ToString(),
+                            Incidencia = dr["Incidencia"] == DBNull.Value ? null : dr["Incidencia"].ToString(),
+                            MultaDanio = dr["MultaDanio"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["MultaDanio"]),
+                            NombreEquipo = dr["NombreEquipo"]?.ToString() ?? "",
+                            TipoEquipo = dr["CategoriaEquipo"]?.ToString() ?? "",
                             NombreUsuario = dr["NombreUsuario"]?.ToString() ?? "",
                             CorreoUsuario = dr["CorreoUsuario"]?.ToString() ?? ""
                         });
@@ -141,16 +187,20 @@ namespace Capa.Datos
                         lista.Add(new Prestamo
                         {
                             PrestamoID = Convert.ToInt32(dr["PrestamoID"]),
+                            DetalleID = Convert.ToInt32(dr["DetalleID"]),
                             EquipoID = Convert.ToInt32(dr["EquipoID"]),
                             UsuarioID = Convert.ToInt32(dr["UsuarioID"]),
                             FechaSolicitud = Convert.ToDateTime(dr["FechaSolicitud"]),
                             FechaInicio = dr["FechaInicio"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaInicio"]),
                             FechaFin = Convert.ToDateTime(dr["FechaFin"]),
                             FechaDevolucion = dr["FechaDevolucion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaDevolucion"]),
-                            Estado = dr["Estado"]?.ToString() ?? "",
+                            Estado = dr["EstadoDetalle"]?.ToString() ?? "",
                             Multa = dr["Multa"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["Multa"]),
+                            MotivoRechazo = dr["MotivoRechazo"] == DBNull.Value ? null : dr["MotivoRechazo"].ToString(),
+                            Incidencia = dr["Incidencia"] == DBNull.Value ? null : dr["Incidencia"].ToString(),
+                            MultaDanio = dr["MultaDanio"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["MultaDanio"]),
                             NombreEquipo = dr["NombreEquipo"]?.ToString() ?? "",
-                            TipoEquipo = dr["TipoEquipo"]?.ToString() ?? "",
+                            TipoEquipo = dr["CategoriaEquipo"]?.ToString() ?? "",
                             NombreUsuario = dr["NombreUsuario"]?.ToString() ?? "",
                             CorreoUsuario = dr["CorreoUsuario"]?.ToString() ?? ""
                         });
@@ -165,9 +215,25 @@ namespace Capa.Datos
             return CambiarEstadoSolicitud(prestamoID, "spAprobarSolicitud", "Solicitud aprobada correctamente.");
         }
 
-        public string RechazarSolicitud(int prestamoID)
+        public string RechazarSolicitud(int prestamoID, string motivoRechazo)
         {
-            return CambiarEstadoSolicitud(prestamoID, "spRechazarSolicitud", "Solicitud rechazada correctamente.");
+            using (SqlConnection cn = new SqlConnection(_cadena))
+            {
+                try
+                {
+                    SqlCommand cmd = new SqlCommand("spRechazarSolicitud", cn);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@PrestamoID", prestamoID);
+                    cmd.Parameters.AddWithValue("@MotivoRechazo", motivoRechazo);
+                    cn.Open();
+                    cmd.ExecuteNonQuery();
+                    return "Solicitud rechazada correctamente.";
+                }
+                catch (Exception ex)
+                {
+                    return "Error: " + ex.Message;
+                }
+            }
         }
 
         private string CambiarEstadoSolicitud(int prestamoID, string procedimiento, string mensajeExito)
@@ -180,8 +246,8 @@ namespace Capa.Datos
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@PrestamoID", prestamoID);
                     cn.Open();
-                    int filas = cmd.ExecuteNonQuery();
-                    return filas > 0 ? mensajeExito : "No se encontró una solicitud pendiente con ese ID.";
+                    cmd.ExecuteNonQuery();
+                    return mensajeExito;
                 }
                 catch (Exception ex)
                 {
@@ -212,7 +278,7 @@ namespace Capa.Datos
             }
         }
 
-        public string DevolverEquipo(int prestamoID, DateTime fechaDev)
+        public string DevolverEquipo(int prestamoID, DateTime fechaDev, string? incidencia, decimal multaDanio)
         {
             using (SqlConnection cn = new SqlConnection(_cadena))
             {
@@ -222,6 +288,8 @@ namespace Capa.Datos
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@PrestamoID", prestamoID);
                     cmd.Parameters.AddWithValue("@FechaDevolucion", fechaDev);
+                    cmd.Parameters.AddWithValue("@Incidencia", (object)incidencia ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@MultaDanio", multaDanio);
 
                     cn.Open();
                     cmd.ExecuteNonQuery();
@@ -246,19 +314,23 @@ namespace Capa.Datos
                 {
                     while (dr.Read())
                     {
-                        lista.Add(new Prestamo
+                         lista.Add(new Prestamo
                         {
                             PrestamoID = Convert.ToInt32(dr["PrestamoID"]),
+                            DetalleID = Convert.ToInt32(dr["DetalleID"]),
                             EquipoID = Convert.ToInt32(dr["EquipoID"]),
                             UsuarioID = Convert.ToInt32(dr["UsuarioID"]),
                             FechaSolicitud = Convert.ToDateTime(dr["FechaSolicitud"]),
                             FechaInicio = dr["FechaInicio"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaInicio"]),
                             FechaFin = Convert.ToDateTime(dr["FechaFin"]),
                             FechaDevolucion = dr["FechaDevolucion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaDevolucion"]),
-                            Estado = dr["Estado"]?.ToString() ?? "",
+                            Estado = dr["EstadoDetalle"]?.ToString() ?? "",
                             Multa = dr["Multa"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["Multa"]),
+                            MotivoRechazo = null,
+                            Incidencia = dr["Incidencia"] == DBNull.Value ? null : dr["Incidencia"].ToString(),
+                            MultaDanio = dr["MultaDanio"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["MultaDanio"]),
                             NombreEquipo = dr["NombreEquipo"]?.ToString() ?? "",
-                            TipoEquipo = dr["TipoEquipo"]?.ToString() ?? "",
+                            TipoEquipo = dr["CategoriaEquipo"]?.ToString() ?? "",
                             NombreUsuario = dr["NombreUsuario"]?.ToString() ?? "",
                             CorreoUsuario = dr["CorreoUsuario"]?.ToString() ?? ""
                         });
@@ -267,6 +339,45 @@ namespace Capa.Datos
             }
             return lista;
         }
-
+        public Prestamo BuscarPorId(int id)
+        {
+            Prestamo obj = null;
+            using (SqlConnection cn = new SqlConnection(_cadena))
+            {
+                SqlCommand cmd = new SqlCommand("spBuscarPrestamoPorId", cn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.AddWithValue("@PrestamoID", id);
+                cn.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    if (dr.Read())
+                    {
+                        obj = new Prestamo
+                        {
+                            PrestamoID = Convert.ToInt32(dr["PrestamoID"]),
+                            DetalleID = Convert.ToInt32(dr["DetalleID"]),
+                            EquipoID = Convert.ToInt32(dr["EquipoID"]),
+                            UsuarioID = Convert.ToInt32(dr["UsuarioID"]),
+                            FechaSolicitud = Convert.ToDateTime(dr["FechaSolicitud"]),
+                            FechaInicio = dr["FechaInicio"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaInicio"]),
+                            FechaFin = Convert.ToDateTime(dr["FechaFin"]),
+                            FechaDevolucion = dr["FechaDevolucion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaDevolucion"]),
+                            Estado = dr["EstadoDetalle"]?.ToString() ?? "",
+                            Multa = dr["Multa"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["Multa"]),
+                            MotivoRechazo = dr["MotivoRechazo"] == DBNull.Value ? null : dr["MotivoRechazo"].ToString(),
+                            Incidencia = dr["Incidencia"] == DBNull.Value ? null : dr["Incidencia"].ToString(),
+                            MultaDanio = dr["MultaDanio"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["MultaDanio"]),
+                            NombreEquipo = dr["NombreEquipo"]?.ToString() ?? "",
+                            TipoEquipo = dr["CategoriaEquipo"]?.ToString() ?? "",
+                            NombreUsuario = dr["NombreUsuario"]?.ToString() ?? "",
+                            CorreoUsuario = dr["CorreoUsuario"]?.ToString() ?? ""
+                        };
+                    }
+                }
+            }
+            return obj;
+        }
     }
 }
